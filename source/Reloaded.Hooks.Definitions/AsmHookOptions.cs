@@ -37,7 +37,8 @@ namespace Reloaded.Hooks.Definitions
         /// Maximum size of the jmp opcode generated to the stub function.
         /// This is the minimum bytes overwritten at the point where the hook you are making is being made.
         /// Default value is 7 (for backwards compatibility).
-        /// If <see cref="PreferRelativeJump"/> is false, use a value of 6.
+        /// If <see cref="PreferRelativeJump"/> is false, at least 8 bytes are overwritten regardless of this value,
+        /// as an absolute jump through a pointer at or above 2GB takes 8 bytes.
         /// If <see cref="PreferRelativeJump"/> is true, you can use a value of 5.
         /// </summary>
         public int MaxOpcodeSize { get; set; } = 7;

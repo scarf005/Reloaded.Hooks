@@ -128,8 +128,9 @@ namespace Reloaded.Hooks
             */
 
 
+            // An absolute jump through a pointer at or above 2GB needs an address size prefix, making it MaxAbsJmpSize bytes.
             if (options.hookLength == -1)
-                options.hookLength = Utilities.GetHookLength(functionAddress, options.MaxOpcodeSize, _is64Bit);
+                options.hookLength = Utilities.GetHookLength(functionAddress, options.PreferRelativeJump ? options.MaxOpcodeSize : Math.Max(options.MaxOpcodeSize, Constants.MaxAbsJmpSize), _is64Bit);
 
             CurrentProcess.SafeReadRaw(functionAddress, out byte[] originalFunction, options.hookLength);
 
@@ -207,6 +208,9 @@ namespace Reloaded.Hooks
             var jumpOpcodes = options.PreferRelativeJump
                 ? Utilities.AssembleRelativeJump(functionAddress, entryStubAddr, _is64Bit).ToList()
                 : Utilities.AssembleAbsoluteJump(entryStubAddr, _is64Bit).ToList();
+            if (jumpOpcodes.Count > options.hookLength)
+                throw new ArgumentException($"Hook length {options.hookLength} is shorter than the {jumpOpcodes.Count} byte jump to the hook stub.");
+
             Utilities.FillArrayUntilSize<byte>(jumpOpcodes, 0x90, options.hookLength);
             _activateHookPatch = new Patch(functionAddress, jumpOpcodes.ToArray());
             return true;
