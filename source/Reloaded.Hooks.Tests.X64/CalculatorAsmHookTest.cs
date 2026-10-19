@@ -71,6 +71,16 @@ add {Macros._eax}, 1";
         [Fact]
         public void TestHookAddBeforeOriginalRelative() => TestHookAddBeforeOriginal_Internal(new AsmHookOptions() { Behaviour = AsmHookBehaviour.ExecuteFirst, PreferRelativeJump = true });
 
+        [Fact]
+        public void TestHookAddBeforeOriginalMaxOpcodeSizeShorterThanAbsoluteJump() => TestHookAddBeforeOriginal_Internal(new AsmHookOptions() { Behaviour = AsmHookBehaviour.ExecuteFirst, MaxOpcodeSize = 1 });
+
+        [Fact]
+        public void TestHookLengthShorterThanAbsoluteJumpThrows()
+        {
+            string[] addFunction = { $"{Macros._use32}", $"add {Macros._eax}, 1" };
+            Assert.Throws<ArgumentException>(() => ReloadedHooks.Instance.CreateAsmHook(addFunction, (long)_nativeCalculator.Add, new AsmHookOptions() { hookLength = 1 }));
+        }
+
         private void TestHookAddBeforeOriginal_Internal(AsmHookOptions options)
         {
             int wordSize = IntPtr.Size;
